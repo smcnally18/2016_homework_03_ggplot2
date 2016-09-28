@@ -1,0 +1,153 @@
+---
+title: "McNally_3"
+author: "Sean McNally"
+date: "September 27, 2016"
+output: html_document
+---
+
+####**1)** Complete problems 10 and 17-18 on pg. 109-111. Use R where possible. Data sets (so you don’t have to type things in) are available at http://www.zoology.ubc.ca/~whitlock/ABD/teaching/datasets.html.
+
+####Problem 10 
+#####a. Using an approximate method, provide a rough 95% confidence interval for the population mean 95% CI = 2 * SE
+```{r, ECHO=TRUE}
+library(magrittr) 
+library(dplyr) 
+library(ggplot2) 
+gene_data <- read.csv("04q11NumberGenesRegulated.csv")
+head(gene_data)
+mean_gene_data <- gene_data %>%
+  summarize(mean_gene_data = mean(ngenes)) %>%
+  ungroup ()
+sd_gene_data <- gene_data %>%
+  summarize(sd_gene_data = sd(ngenes)) %>%
+  ungroup () 
+head(mean_gene_data)
+head(sd_gene_data)
+std_error <- (sd_gene_data)/sqrt(26)
+head(std_error)
+CI_95 <- 2 * (std_error)
+head(CI_95)
+```
+#####b. Provide an interpretation of the interval you calculated in part (a).
+The 95% confidence interval that we calculated in part a allows us to construct a range of values (upper limit and lower limit) in which our calculated populatiom mean falls in. In this case our upper limit of our calculated population mean is 
+```{r, echo=TRUE}
+14.5 + 3.66
+```
+and our lower limit is 
+```{r, echo=TRUE}
+14.5 - 3.66
+```
+These values are what allow us to define that we are 95% confident that our estimated parameter will fall between the calculated upper limit and lower limit. In this case our parameter is the population mean.
+
+####Problem 17
+From the plot it is true that the first plotted mean is 2.0 +/- 1.1, however describing it as there is a 95%  chance that the actual result is between 0.9 and 3.1 is incorrect. We can only say that we are 95% confident that our calculated mean lies between 0.9 and 3.1. We also cannot make the assumption that there is a 2.5% chance our mean falls below or above our CI. 
+
+####Problem 18
+#####*Amorphophallus johnsonii* is a plant growing in West Africa, and its is better known as a "corpse flower."Its commmon name comes from the fact that when it flowers, it gives off a "powerful aroma of rotting fish and faeces." The flowes smell this way because their principal pollinators are carrion beetles, who are attracted to such a smell. Beath (1996) observed the number of carrion beetles(*Phaeochrous amplus*) that arrive per night to flowers of this species. The data are as follows:
+
+51, 45, 61, 76, 11, 117, 7, 132, 52, 149 
+
+#####a What is the mean and standard deviation of beetles per flower?
+```{r, echo=TRUE}
+corpse_beetles <- c(51, 45, 61, 76, 11, 117, 7, 132, 52, 149 )
+mean(corpse_beetles)
+sd(corpse_beetles)
+```
+#####b What is the standard error of this estimate of the mean 
+```{r, echo=TRUE}
+std_error_corpse_beetles <- (48.50)/sqrt(10)
+head(std_error_corpse_beetles)
+```
+#####c Give an approximate 95% confidence interval of the mean. Provide lower and upper limits.
+```{r, echo=TRUE}
+CI_95_beetles <- 2 * 15.34
+head(CI_95_beetles)
+```
+Upper limit
+```{r, echo=TRUE}
+70.1 + 30.68
+```
+Lower limit
+```{r, echo=TRUE}
+70.1 - 30.68
+```
+
+#####d If you had been given 25 data points instead of 10, would you expect the mean to be greater, less than, or about the same as the mean of this sample?
+This really depends on the value(s) of the new data points. If they were high in value or extremely negative (not sure how that would be possible) the mean might change signficantly. If I had to guess the mean would most likely stay about the same if we added 15 new data points.
+#####e If you had been given 25 data points instead of 10, would you have expected the standard deviation to be greater, less than, or abou the same as this sample?
+Our calculated standard deviation would decrease with an increase in data points. 
+#####f If you had been given 25 data points instead of 10, would you have expected the standard error of the mean to be greater, less, than, or about the same as this sample?
+Our calculated standard error would decrease with an increase in data points. 
+
+**2)** The other day, [Dave Curran](https://twitter.com/iamreddave) using some of the code from our lab made a wonderful animation of change in arctic sea ice.
+
+![](https://i.redd.it/9r9ook3d5xlx.gif)
+
+He used data from   
+
+ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/NH_seaice_extent_final_v2.csv
+ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/NH_seaice_extent_nrt_v2.csv
+
+I'm providing you with a cleaned form of his data (his code is [here](https://gist.github.com/cavedave/c5c2224c8c38661236c1c1ce894fd28f)) for you to work with in a few plots. The data file is called `NH_seaice_extent_monthly_1978_2016.csv`
+
+**2.1)** Load the data using `readr` and make the `Month_Names` column into a factor whose levels are in order of month.
+```{r, echo=TRUE}
+library(readr)
+library(dplyr)
+library(forcats)
+library(ggplot2)
+sea_ice <- read.csv("~/Desktop/BIOL 607/Homework/homework_3_fork/data/NH_seaice_extent_monthly_1978_2016.csv")
+sea_ice_sorted <- sea_ice %>%
+mutate(Month_Name = factor(Month_Name, levels = month.abb))
+sort(sea_ice_sorted$Month_Name)
+levels(sea_ice_sorted$Month_Name)
+```
+**2.2)** Make a boxplot showing the variability in sea ice extent every month.
+```{r, echo=TRUE}
+box_ice <- ggplot(data = sea_ice_sorted, mapping = aes(x = Month_Name, y = Extent))
+box_ice + 
+  geom_boxplot()
+```
+
+**2.3)** Use `dplyr` to get the annual minimum sea ice. Plot minimum ice by year, and add a trendline (either a smooth spline or a straight line).
+```{r, echo=TRUE}
+min_sea_ice <- sea_ice_sorted %>%
+  group_by(Year) %>%
+  mutate(min_ice = min(Extent)) %>%
+  ungroup()
+head(min_sea_ice)
+min_sea_ice_plot <- ggplot(data = min_sea_ice, mapping = aes(x = Year, y = min_ice))
+min_sea_ice_plot + geom_jitter(width = 0.2, height = 0) + 
+  stat_smooth(method = "lm", color = "black" ) + 
+  theme_bw()
+```
+
+**2.4)** Plot sea ice by year, with different lines for different months. Then, add a new column (`mutate`!) using the ggplot2 function `cut_interval(Month, n=4)` - this will create four even bins. Seasons, if you will. Use `facet_wrap` on the same plot and split the plot into seasons.
+```{r, echo=TRUE}
+library(RColorBrewer)
+sea_ice_year <- ggplot(data = sea_ice_sorted, mapping = aes(x = Year, y = Extent))
+sea_ice_year + geom_line(mapping = aes(group = Month_Name, x = Year, y = Extent, color = Month_Name)) + 
+  theme_bw()
+seasonal_sea_ice <- sea_ice_sorted %>%
+  mutate(season = cut_interval(Month,n = 4))
+help("facet_wrap")
+ggplot(seasonal_sea_ice) + 
+  geom_line(mapping = aes(group = Month_Name, x = Year, y =Extent, color = Month_Name)) + 
+  facet_wrap(~season) + 
+  theme_bw()
+```
+
+**2.5)** Last, make a line plot of sea ice by month. Gussy it up with colors by year, a different theme, and whatever other annotations, changes to axes, etc., you think best show the story of this data.
+```{r, echo=TRUE}
+library(ggplot2)
+library(ggthemes)
+library(ggThemeAssist)
+ggplot(data = sea_ice_sorted, mapping = aes(x = Month_Name, y = Extent, frame = Year)) + 
+  geom_line(mapping = aes(x = Month_Name, y = Extent, group = Year, color = Year)) +
+  theme_bw() +
+  labs(title = "Change in Sea Ice Concentration from 1978-2016", x = "Month", y = "Extent of Change") +
+  scale_colour_gradientn(colours=rainbow(4))
+```
+
+**2.6 Extra Credit)** Make it animated.
+ughhhhhhhh
